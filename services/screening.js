@@ -1,4 +1,5 @@
 const screeningModel = require('../models/screening');
+const movieModel = require('../models/movies');
 
 const ScreeningService = {
   getAllScreenings: async () => {
@@ -7,15 +8,15 @@ const ScreeningService = {
 
   createScreening: async (data) => {
     const {movie_id, room_id, start_time} = data;
-    //const is_movie = movieModel.isMovie(movie_id);
-    //if (is_movie === false){
-      //throw new Error('Movie is not in table');
-    //}
+    const movie = await movieModel.isMovie(movie_id);
+    if (!movie){
+      throw new Error('Movie is not in table');
+    }
     //const is_room_used = screeningModel.isRoomUsed(room_id, start_id);
-    //if (is_room_used === true){
+    //if (is_room_used !=== NULL){
       //throw new Error('Room is already in use');
     //}
-    screeningModel.createScreening(movie_id, room_id, start_time);
+    await screeningModel.createScreening(movie_id, room_id, start_time);
 
   },
 

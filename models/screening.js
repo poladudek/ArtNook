@@ -8,11 +8,12 @@ ScreeningModel = {
         return;
     },
     deleteScreening: async (id) => {
-        await db.query(`DELETE FROM Screenings WHERE id=${id}`);
+        await db.query(`DELETE FROM Screenings WHERE id= ?`, [id]);
     },
     getScreeningById: async (id) => {
-        screening = db.query(`SELECT screening FROM Screenings WHERE screening.id = ${id}`);
-        return screening;
+    const [screening] = await db.query(
+      'SELECT * FROM Screenings WHERE id = ?', [id]);
+    return screening[0];
     },
     updateScreening: async (id, new_data) =>
     {

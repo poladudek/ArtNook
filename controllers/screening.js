@@ -35,6 +35,12 @@ const screeningController = {
     const seat_num = req.params.seat_num;
     await screeningService.reserveSeat(id, seat_num);
     res.json({message: `Seat ${seat_num} for screening with ID ${id} reserved correctly.`})
+  },
+
+  getFullScreeningInfoById: async (req, res) => {
+    const movie_id = req.params.id;
+    const screening = await screeningService.getFullScreeningInfoById(movie_id);
+    res.json(screening);
   }
 };
 

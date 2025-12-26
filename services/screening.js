@@ -1,7 +1,7 @@
 const screeningModel = require('../models/screening');
 const movieModel = require('../models/movies');
 
-const ScreeningService = {
+const screeningService = {
   getAllScreenings: async () => {
     return await screeningModel.getAllScreenings();
   },
@@ -12,10 +12,11 @@ const ScreeningService = {
     if (!movie){
       throw new Error('Movie is not in table');
     }
-    //const is_room_used = screeningModel.isRoomUsed(room_id, start_id);
-    //if (is_room_used !=== NULL){
-      //throw new Error('Room is already in use');
-    //}
+    
+    const is_room_used = await screeningModel.isRoomUsed(movie_id, room_id, start_time);
+    if (is_room_used){
+      throw new Error('Room is already in use');
+    }
     await screeningModel.createScreening(movie_id, room_id, start_time);
 
   },
@@ -39,7 +40,11 @@ const ScreeningService = {
     }
     await screeningModel.reserveSeat(screeningId, seatNumber);
     return {message: `Seat ${seatNumber} reserved successfully`};
+  },
+
+  getFullScreeningInfoById: async (movie_id) => {
+    return await screeningModel.getFullScreeningInfoById(movie_id);
   }
 };
 
-module.exports = ScreeningService;
+module.exports = screeningService;

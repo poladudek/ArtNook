@@ -8,5 +8,6 @@ screening_router.post("/", screening_controller.createScreening);
 screening_router.put("/:id", screening_controller.updateScreening);
 screening_router.delete("/:id", screening_controller.deleteScreening);
 screening_router.post('/reserve/:id/:seat_num', screening_controller.reserveSeat);
+screening_router.get("/full/:id", screening_controller.getFullScreeningInfoById);
 
 module.exports = screening_router;

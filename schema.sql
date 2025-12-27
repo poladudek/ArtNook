@@ -35,3 +35,12 @@ CREATE TABLE Seats (
     is_booked BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (screening_id) REFERENCES Screenings(id) ON DELETE CASCADE
 );
+
+
+CREATE TABLE Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(25) NOT NULL,
+    role ENUM('user','admin') DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rejestracja - ArtNook</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <nav>
+        <p class="name">ART NOOK</p>
+        <div class="tabs">
+            <a href="screenings.html">Repertuar</a>
+            <a href="about.html">O nas</a>
+            <a href="login.html">Zaloguj się</a>
+        </div>
+    </nav>
+
+    <main class="register-section">
+        <div class="register-container">
+            <h1>Utwórz konto</h1>
+            <form id="registerForm">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" required placeholder="anna.kowalska@email.com">
+
+                <label for="password">Hasło</label>
+                <input type="password" id="password" name="password" required placeholder="Hasło">
+
+                <label for="password2">Powtórz hasło</label>
+                <input type="password" id="password2" name="password2" required placeholder="Powtórz hasło">
+                <div class="register-info"><p id="registerMessage" style="color: black;"></p></div>
+
+                <button type="submit">Zarejestruj się</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('registerForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = form.email.value;
+            const password = form.password.value;
+            const password2 = form.password2.value;
+            const register_info = document.getElementById('registerMessage');
+
+            if(password !== password2){
+                register_info.textContent = "Podane hasła się od siebie różnią.";
+                return;
+            }
+            const res = await fetch('http://localhost:3000/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, password })});
+                const data = await res.json();
+                register_info.textContent = data.message;
+            form.reset();
+        });
+    </script>
+</body>
+</html>

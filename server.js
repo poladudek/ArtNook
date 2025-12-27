@@ -9,8 +9,10 @@ app.use(cors());
 
 const screeningRoutes = require('./routes/screening');
 const movieRoutes = require('./routes/movies');
+const userRoutes = require('./routes/user');
 app.use('/api/screenings', screeningRoutes);
 app.use('/api/movies', movieRoutes);
+app.use('/api/register', userRoutes);
 
 app.use('/images', express.static(path.join(__dirname, 'views/images')));
 

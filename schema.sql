@@ -2,7 +2,8 @@ CREATE TABLE Movies (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     description VARCHAR(2000),
-    duration INT NOT NULL
+    duration INT NOT NULL,
+    img_path VARCHAR(255)
 );
 
 CREATE TABLE Rooms (

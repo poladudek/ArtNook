@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ArtNook - Repertuar</title>
+        <link rel="stylesheet" href="styles/style.css">
+    </head>
+    <body>
+        <nav>
+            <p class="name">ART NOOK</p>
+            <div class="tabs">
+                <a href = "screenings.html">Repertuar</a>
+                <a href = "about.html">O nas</a>
+                <a href = "login.html">Zaloguj się</a>
+            </div>
+        </nav>
+        <div class="movies"></div>
+       <script>
+            console.log("Script is working");
+            const container = document.querySelector(".movies");
+            async function loadMovies() {
+                try {
+                const response = await fetch('http://localhost:3000/api/movies/');
+                const data = await response.json();
+                console.log("Data from API:", data);
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                    const title = document.createElement('h3');
+                    title.textContent = item.title;
+                    const desc = document.createElement('p');
+                    desc.textContent = item.description;
+
+                    const img = document.createElement('img');
+                    img.src = `http://localhost:3000/${item.img_path}`;
+                    img.alt = item.title;
+
+                    div.appendChild(img);
+                    div.appendChild(title);
+                    div.appendChild(desc);
+                    container.appendChild(div);
+                });
+                } catch (err) {
+                console.error('Failed to load movies:', err);
+                }
+            }
+            loadMovies();
+        </script>
+    </body>
+</html>

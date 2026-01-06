@@ -1,19 +1,107 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>ArtNook</title>
-        <link rel="stylesheet" href="styles/style.css">
-    </head>
-    <body>
-        <nav>
-            <p class="name">ART NOOK</p>
-            <div class="tabs">
-                <a href = "screenings.html">Repertuar</a>
-                <a href = "about.html">O nas</a>
-                <a href = "login.html">Zaloguj się</a>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtNook - Kino Artystyczne</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+
+    <nav>
+        <p class="name">ART NOOK</p>
+        <div class="tabs">
+            <a href="screenings.html">Repertuar</a>
+            <a href="about.html">O nas</a>
+            <a href="login.html">Zaloguj się</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <h1>KINO ARTYSTYCZNE</h1>
+        <p>Miejsce dla ciszy, obrazu i emocji</p>
+    </section>
+
+    <h2 class="section-title">NAJNOWSZE FILMY</h2>
+
+    <div class="movies-scroll">
+        <div class="movies-container" id="moviesContainer">
+            <!-- Filmy załadowane z API -->
+        </div>
+    </div>
+
+    <section class="food-section">
+        <h2 class="section-title">NASZA OFERTA</h2>
+        <div class="food-grid">
+            <div class="food-item">
+                <img src="https://images.unsplash.com/photo-1578849278619-e73505e9610f?w=800" alt="Popcorn">
+                <h3>Świeży popcorn</h3>
+                <p>Tradycyjny popcorn przygotowywany na miejscu. Dostępny w wersjach: słony, karmelowy i cheddar.</p>
             </div>
-        </nav>
-        <section>
-        </section>
-    </body>
+
+            <div class="food-item">
+                <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800" alt="Napoje">
+                <h3>Napoje rzemieślnicze</h3>
+                <p>Selektowane napoje lokalne, kawa speciality oraz herbaty premium od małych producentów.</p>
+            </div>
+
+            <div class="food-item">
+                <img src="https://images.unsplash.com/photo-1606312619070-d48b4cda83bd?w=800" alt="Przekąski">
+                <h3>Przekąski premium</h3>
+                <p>Wyselekcjonowane przekąski od lokalnych producentów, w tym wegańskie i bezglutenowe opcje.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 ArtNook. Wszystkie prawa zastrzeżone.</p>
+    </footer>
+
+    <script>
+console.log("Script is working");
+
+const container = document.getElementById("moviesContainer");
+
+async function loadMovies() {
+    try {
+        const response = await fetch("http://localhost:3000/api/movies/");
+        const movies = await response.json();
+
+        container.innerHTML = "";
+
+        movies.forEach(movie => {
+    const card = document.createElement("div");
+    card.classList.add("movie-card");
+
+    const img = document.createElement("img");
+    img.classList.add("movie-poster"); // ✅ scroll / okładka
+    img.src = `http://localhost:3000/${movie.img_path}`;
+    img.alt = movie.title;
+
+    const title = document.createElement("h3");
+    title.classList.add("movie-title"); // ✅ tytuł
+    title.textContent = movie.title;
+
+    const desc = document.createElement("p");
+    desc.classList.add("movie-desc"); // ✅ opis
+    desc.textContent = movie.description;
+
+    card.append(img, title, desc);
+    container.appendChild(card);
+});
+
+
+    } catch (error) {
+        console.error("Błąd pobierania filmów:", error);
+        container.innerHTML = "<p>Nie udało się załadować filmów.</p>";
+    }
+}
+
+loadMovies();
+</script>
+
+
+
+
+</body>
 </html>

@@ -1,6 +1,9 @@
 require('dotenv').config(); // Loads from .env into process.env
 const jwt = require('jsonwebtoken');
 const SECRET = process.env.JWT_SECRET; // Key to validate tokens
+if (!SECRET) {
+  throw new Error('JWT_SECRET is not defined in .env');
+}
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];

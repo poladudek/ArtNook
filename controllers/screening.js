@@ -10,13 +10,13 @@ const screeningController = {
 
   createScreening: async (req, res) => {
     await screeningService.createScreening(req.body); // params are in header here we are using body
-    res.json({ message: `Screening created correctly`});
+    res.json({ message: `Seans utworzony poprawnie.` });
   },
 
   deleteScreening: async (req, res) => {
     const id = req.params.id;
     await screeningService.deleteScreening(id);
-    res.json({message: `Screening ${id} deleted correctly`});
+    res.json({message: `Seans ${id} usunięty poprawnie`});
   },
 
   getScreeningById: async (req, res) => {
@@ -30,12 +30,12 @@ const screeningController = {
       const id = req.params.id;
       const seat_num = req.params.seat_num;
       const userId = req.user && req.user.id;
-      if (!userId) return res.status(401).json({ message: 'Authentication required' });
+      if (!userId) return res.status(401).json({ message: 'Autoryzacja wymagana' });
       await screeningService.reserveSeat(id, seat_num, userId);
-      res.json({ message: `Seat ${seat_num} for screening with ID ${id} reserved correctly.` });
+      res.json({ message: `Miejsce ${seat_num} dla seansu o ID ${id} zarezerwowane poprawnie.` });
     } catch (err) {
       if (err.status === 409 || err.message === 'Seat already reserved' || err.code === 'SEAT_TAKEN') {
-        return res.status(409).json({ message: 'Seat is already reserved' });
+        return res.status(409).json({ message: 'Miejsce jest już zajęte' });
       }
       console.error(err);
       res.status(500).json({ message: 'Server error' });

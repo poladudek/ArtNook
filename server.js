@@ -16,7 +16,7 @@ app.use('/api/screenings', screeningRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api', userRoutes);
 app.use('/api/bookings', bookingsRoutes);
-app.use('/images', express.static(path.join(__dirname, 'views/images')));
+app.use('/images', express.static(path.join(__dirname, 'views/images'))); // Allows to display images on frontend
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

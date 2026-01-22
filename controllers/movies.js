@@ -18,7 +18,7 @@ const movieController = {
             res.json({data: moviesWithImg});
         } catch (err) {
             console.error(err);
-            res.status(500).json({ error: 'Failed to get movies' });
+            res.status(500).json({ error: 'Nie udało się pobrać filmów' });
         }
     },
 
@@ -26,14 +26,14 @@ const movieController = {
         try {
             const { title, description, duration, img_path } = req.body;
             if (!title || !description || !duration) {
-                return res.status(400).json({ error: 'Missing required fields' });
+                return res.status(400).json({ error: 'Brak wymaganych pól' });
             }
 
             const result = await movieService.createMovie({ title, description, duration, img_path });
             res.status(201).json({ success: true, id: result.insertId });
         } catch (err) {
             console.error(err);
-            res.status(500).json({ error: 'Failed to create movie' });
+            res.status(500).json({ error: 'Nie udało się stworzyć filmu' });
         }
     },
 
@@ -42,7 +42,7 @@ const movieController = {
             const { id } = req.params;
             const { title, description, duration, img_path } = req.body;
             if (!title || !description || !duration) {
-                return res.status(400).json({ error: 'Missing required fields' });
+                return res.status(400).json({ error: 'Brak wymaganych pól' });
             }
 
             await movieService.updateMovie(id, { title, description, duration, img_path });

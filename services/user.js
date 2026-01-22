@@ -23,14 +23,14 @@ const userService = {
     const [rows] = await userModel.getUserByEmail(email);
 
     if (!rows || rows.length === 0) {
-      return { success: false, message: 'User not found' };
+      return { success: false, message: 'Użytkownik nie został znaleziony.' };
     }
 
     const user = rows[0];
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      return { success: false, message: 'Invalid email or password' };
+      return { success: false, message: 'Wprowadzone dane są nieprawidłowe.' };
     }
 
     const token = jwt.sign(

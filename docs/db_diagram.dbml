@@ -1,11 +1,10 @@
-// DBML representation of schema.sql for ArtNook
 Table Movies {
   id int [pk, increment]
   title varchar(100) [not null]
   description varchar(2000)
   duration int [not null]
   img_path varchar(255)
-  created_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
 }
 
 Table Rooms {
@@ -16,15 +15,15 @@ Table Rooms {
 
 Table Screenings {
   id int [pk, increment]
-  movie_id int [ref: > Movies.id]
-  room_id int [ref: > Rooms.id]
+  movie_id int [not null, ref: > Movies.id]
+  room_id int [not null, ref: > Rooms.id]
   start_time datetime [not null]
   end_time datetime [not null]
 }
 
 Table Seats {
   id int [pk, increment]
-  screening_id int [ref: > Screenings.id]
+  screening_id int [not null, ref: > Screenings.id]
   seat_number varchar(10) [not null]
   is_booked boolean [default: false]
 }
@@ -36,16 +35,17 @@ Table Users {
   email varchar(100) [not null, unique]
   password varchar(255) [not null]
   role enum('user','admin') [default: 'user']
-  created_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
 }
 
 Table Bookings {
   id int [pk, increment]
-  user_id int [ref: > Users.id]
-  screening_id int [ref: > Screenings.id]
+  user_id int [not null, ref: > Users.id]
+  screening_id int [not null, ref: > Screenings.id]
   seat_number varchar(10) [not null]
   status enum('active','cancelled') [default: 'active']
-  created_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
   Indexes {
     (screening_id, seat_number) [unique]
   }

@@ -10,11 +10,11 @@ const screeningService = {
     const db = require('../config/db');
     let {movie_id, room_id, room_name, start_time} = data;
 
-    if (!movie_id) throw new Error('movie_id is required');
+    if (!movie_id) throw new Error('Należy podać movie_id');
 
     const movie = await movieModel.isMovie(movie_id);
     if (!movie){
-      throw new Error('Movie is not in table');
+      throw new Error('Podany film nie istnieje');
     }
 
 
@@ -32,7 +32,7 @@ const screeningService = {
 
     const is_room_used = await screeningModel.isRoomUsed(movie_id, room_id, start_time);
     if (is_room_used){
-      throw new Error('Room is already in use');
+      throw new Error('Sala jest już zajęta w podanym terminie.');
     }
     await screeningModel.createScreening(movie_id, room_id, start_time);
 

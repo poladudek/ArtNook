@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel administratora - ArtNook</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+
+<nav>
+    <p class="name">
+        <a href="index.html" style="color:inherit; text-decoration:none">ART NOOK</a> — ADMIN
+    </p>
+    <div class="tabs">
+        <a href="#" id="logout">Wyloguj</a>
+    </div>
+</nav>
+
+<main class="admin-main">
+    <section class="admin-section">
+        <h2>Filmy</h2>
+
+        <form id="movieForm">
+            <input type="hidden" id="movieId">
+
+            <input type="text" id="movieTitle" placeholder="Tytuł filmu" required>
+            <input type="text" id="movieDescription" placeholder="Opis" required>
+            <input type="text" id="movieImg" placeholder="Ścieżka okładki (np. images/movie.jpg)">
+            <input type="number" id="movieDuration" placeholder="Czas trwania (min)" required min="1">
+
+            <button type="submit" id="movieSubmitBtn">Dodaj film</button>
+            <button type="button" id="cancelEdit" style="display:none">Anuluj</button>
+        </form>
+
+        <div id="moviesList"></div>
+    </section>
+
+
+    <section class="admin-section">
+        <h2>Seanse</h2>
+
+        <form id="screeningForm">
+            <select id="movieSelect" required></select>
+            <input type="datetime-local" id="screeningTime" required>
+            <input type="text" id="roomName" placeholder="Sala" required>
+            <button type="submit">Dodaj seans</button>
+        </form>
+
+        <div id="screeningsList"></div>
+    </section>
+</main>
+
+<script>
+const token = localStorage.getItem('token');
+
+if (!token) {
+    alert('Brak dostępu');
+    location.href = 'login.html';
+}
+
+(async function verifyAdmin(){
+    try {
+        const res = await fetch('http://localhost:3000/api/me', {
+            headers: { Authorization: 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (!data.user || data.user.role !== 'admin') {
+            throw new Error('Brak uprawnień');
+        }
+    } catch {
+        localStorage.removeItem('token');
+        location.href = 'login.html';
+    }
+})();
+
+logout.onclick = () => {
+    localStorage.removeItem('token');
+    location.href = 'index.html';
+};
+
+async function loadMovies() {
+    const res = await fetch('http://localhost:3000/api/movies?page=1&per_page=100');
+    const payload = await res.json();
+    const movies = payload.data || payload;
+
+    moviesList.innerHTML = '';
+    movieSelect.innerHTML = '<option value="">Wybierz film</option>';
+
+    movies.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+
+        div.innerHTML = `
+            <span><b>${m.title}</b> — ${m.description}</span>
+        `;
+
+        const edit = document.createElement('button');
+        edit.textContent = 'Edytuj';
+        edit.onclick = () => editMovie(m);
+
+        const del = document.createElement('button');
+        del.textContent = 'Usuń';
+        del.onclick = () => deleteMovie(m.id);
+
+        div.appendChild(edit);
+        div.appendChild(del);
+        moviesList.appendChild(div);
+
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.title;
+        movieSelect.appendChild(opt);
+    });
+}
+
+movieForm.onsubmit = async e => {
+    e.preventDefault();
+
+    const id = movieId.value;
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `http://localhost:3000/api/movies/${id}` : `http://localhost:3000/api/movies`;
+    await fetch(url, {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + token
+        },
+        body: JSON.stringify({
+            title: movieTitle.value,
+            description: movieDescription.value,
+            duration: Number(movieDuration.value),
+            img_path: movieImg.value
+        })
+    });
+
+    resetMovieForm();
+    loadMovies();
+};
+
+function editMovie(m) {
+    movieId.value = m.id;
+    movieTitle.value = m.title;
+    movieDescription.value = m.description;
+    movieDuration.value = m.duration;
+    movieImg.value = m.img_path || '';
+
+    movieSubmitBtn.textContent = 'Zapisz zmiany';
+    cancelEdit.style.display = 'inline-block';
+}
+
+cancelEdit.onclick = resetMovieForm;
+
+function resetMovieForm() {
+    movieId.value = '';
+    movieForm.reset();
+    movieSubmitBtn.textContent = 'Dodaj film';
+    cancelEdit.style.display = 'none';
+}
+
+async function deleteMovie(id) {
+
+    await fetch(`http://localhost:3000/api/movies/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + token }
+    });
+
+    loadMovies();
+}
+
+// ===== SEANSE =====
+async function loadScreenings() {
+    const res = await fetch('http://localhost:3000/api/screenings?page=1&per_page=200');
+    const payload = await res.json();
+    const screenings = payload.data || payload;
+
+    screeningsList.innerHTML = '';
+
+    screenings.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+            <span>${s.movie_title} • ${new Date(s.start_time).toLocaleString('pl-PL')} • Sala ${s.room_name}</span>
+        `;
+
+        const del = document.createElement('button');
+        del.textContent = 'Usuń';
+        del.onclick = () => deleteScreening(s.id);
+
+        div.appendChild(del);
+        screeningsList.appendChild(div);
+    });
+}
+
+screeningForm.onsubmit = async e => {
+    e.preventDefault();
+
+    await fetch('http://localhost:3000/api/screenings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + token
+        },
+        body: JSON.stringify({
+            movie_id: movieSelect.value,
+            start_time: screeningTime.value,
+            room_name: roomName.value
+        })
+    });
+
+    screeningForm.reset();
+    loadScreenings();
+};
+
+async function deleteScreening(id) {
+
+    await fetch(`http://localhost:3000/api/screenings/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + token }
+    });
+
+    loadScreenings();
+}
+
+loadMovies();
+loadScreenings();
+</script>
+
+</body>
+</html>

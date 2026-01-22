@@ -1,8 +1,8 @@
 const db = require("../config/db");
 
 const User = {
-    createUser: (email, password) => {
-        return db.query('INSERT INTO Users (email, password) VALUES (?, ?)', [email, password]);
+    createUser: (first_name, last_name, email, password) => {
+        return db.query('INSERT INTO Users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)', [first_name, last_name, email, password]);
     },
 
     getUserByEmail: (email) => {

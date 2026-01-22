@@ -13,7 +13,6 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            animation: slideUp 0.8s ease-out both;
         }
 
         .login-box input {
@@ -49,10 +48,9 @@
 </head>
 <body>
 <nav>
-        <p class="name">ART NOOK</p>
+        <a class="name" href="index.html">ART NOOK</a>
         <div class="tabs">
             <a href="screenings.html">Repertuar</a>
-            <a href="about.html">O nas</a>
             <a href="login.html">Zaloguj się</a>
         </div>
     </nav>
@@ -61,8 +59,9 @@
 
     <form id="loginForm" class="login-box">
         <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
+        <input type="password" id="password" placeholder="Hasło" required minlength="7">
         <button type="submit">Zaloguj się</button>
+        <div style="text-align:center; margin-top:6px"><a href="register.html">Zarejestruj się</a></div>
         <p id="msg"></p>
     </form>
 </section>
@@ -74,8 +73,13 @@ const msg = document.getElementById('msg');
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+
+    if (password.length < 7) {
+        msg.textContent = 'Hasło musi mieć co najmniej 7 znaków.';
+        return;
+    }
 
     try {
         const res = await fetch('http://localhost:3000/api/login', {
@@ -87,7 +91,7 @@ form.addEventListener('submit', async (e) => {
         const data = await res.json();
 
         if (!res.ok) {
-            msg.textContent = data.message || 'Login failed';
+            msg.textContent = data.message || 'Logowanie nieudane';
             return;
         }
 
@@ -95,7 +99,7 @@ form.addEventListener('submit', async (e) => {
         window.location.href = 'index.html';
 
     } catch (err) {
-        msg.textContent = 'Server error';
+        msg.textContent = 'Błąd serwera';
         console.error(err);
     }
 });

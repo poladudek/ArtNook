@@ -1,0 +1,52 @@
+// DBML representation of schema.sql for ArtNook
+Table Movies {
+  id int [pk, increment]
+  title varchar(100) [not null]
+  description varchar(2000)
+  duration int [not null]
+  img_path varchar(255)
+  created_at timestamp
+}
+
+Table Rooms {
+  id int [pk, increment]
+  room_name varchar(50) [not null]
+  seats_total int [not null]
+}
+
+Table Screenings {
+  id int [pk, increment]
+  movie_id int [ref: > Movies.id]
+  room_id int [ref: > Rooms.id]
+  start_time datetime [not null]
+  end_time datetime [not null]
+}
+
+Table Seats {
+  id int [pk, increment]
+  screening_id int [ref: > Screenings.id]
+  seat_number varchar(10) [not null]
+  is_booked boolean [default: false]
+}
+
+Table Users {
+  id int [pk, increment]
+  first_name varchar(50) [not null]
+  last_name varchar(50) [not null]
+  email varchar(100) [not null, unique]
+  password varchar(255) [not null]
+  role enum('user','admin') [default: 'user']
+  created_at timestamp
+}
+
+Table Bookings {
+  id int [pk, increment]
+  user_id int [ref: > Users.id]
+  screening_id int [ref: > Screenings.id]
+  seat_number varchar(10) [not null]
+  status enum('active','cancelled') [default: 'active']
+  created_at timestamp
+  Indexes {
+    (screening_id, seat_number) [unique]
+  }
+}

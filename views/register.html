@@ -4,58 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rejestracja - ArtNook</title>
+
     <link rel="stylesheet" href="styles/style.css">
+
+    <style>
+        .register-section {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 80px;
+        }
+
+        .register-container {
+            background: rgba(0, 0, 0, 0.75);
+            padding: 45px;
+            width: 360px;
+            border-radius: 6px;
+            animation: slideUp 0.8s ease-out both;
+        }
+
+        .register-container h1 {
+            text-align: center;
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+        }
+
+        .register-container form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .register-container label {
+            font-size: 12px;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        .register-container input {
+            padding: 12px;
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .register-container button {
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff;
+            color: #000;
+            border: none;
+            font-size: 13px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .register-container button:hover {
+            opacity: 0.7;
+        }
+
+        .register-info {
+            min-height: 18px;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+    </style>
 </head>
 <body>
-    <nav>
-        <p class="name">ART NOOK</p>
-        <div class="tabs">
-            <a href="screenings.html">Repertuar</a>
-            <a href="about.html">O nas</a>
-            <a href="login.html">Zaloguj się</a>
-        </div>
-    </nav>
 
-    <main class="register-section">
-        <div class="register-container">
-            <h1>Utwórz konto</h1>
-            <form id="registerForm">
-                <label for="email">E-mail</label>
-                <input type="email" id="email" name="email" required placeholder="anna.kowalska@email.com">
+<nav>
+    <a class="name" href="index.html">ART NOOK</a>
+    <div class="tabs">
+        <a href="screenings.html">Repertuar</a>
+        <a href="login.html">Zaloguj się</a>
+    </div>
+</nav>
 
-                <label for="password">Hasło</label>
-                <input type="password" id="password" name="password" required placeholder="Hasło">
+<main class="register-section">
+    <div class="register-container">
+        <h1>UTWÓRZ KONTO</h1>
 
-                <label for="password2">Powtórz hasło</label>
-                <input type="password" id="password2" name="password2" required placeholder="Powtórz hasło">
-                <div class="register-info"><p id="registerMessage" style="color: black;"></p></div>
+        <form id="registerForm">
+            <label for="firstName">IMIĘ</label>
+            <input type="text" id="firstName" name="firstName" required placeholder="Anna">
 
-                <button type="submit">Zarejestruj się</button>
-            </form>
-        </div>
-    </main>
+            <label for="lastName">NAZWISKO</label>
+            <input type="text" id="lastName" name="lastName" required placeholder="Kowalska">
 
-    <script>
-        const form = document.getElementById('registerForm');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = form.email.value;
-            const password = form.password.value;
-            const password2 = form.password2.value;
-            const register_info = document.getElementById('registerMessage');
+            <label for="email">E-MAIL</label>
+            <input type="email" id="email" name="email" required placeholder="anna.kowalska@email.com">
 
-            if(password !== password2){
-                register_info.textContent = "Podane hasła się od siebie różnią.";
-                return;
-            }
-            const res = await fetch('http://localhost:3000/api/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, password })});
-                const data = await res.json();
-                register_info.textContent = data.message;
-            form.reset();
-        });
-    </script>
+            <label for="password">HASŁO (min. 7 znaków)</label>
+            <input type="password" id="password" name="password" required placeholder="Hasło" minlength="7">
+
+            <label for="password2">POWTÓRZ HASŁO</label>
+            <input type="password" id="password2" name="password2" required placeholder="Powtórz hasło" minlength="7">
+
+            <div class="register-info">
+                <p id="registerMessage"></p>
+            </div>
+
+            <button type="submit">ZAREJESTRUJ SIĘ</button>
+        </form>
+    </div>
+</main>
+
+<script>
+const form = document.getElementById('registerForm');
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const firstName = form.firstName.value && form.firstName.value.trim();
+    const lastName = form.lastName.value && form.lastName.value.trim();
+    const email = form.email.value && form.email.value.trim();
+    const password = form.password.value;
+    const password2 = form.password2.value;
+    const register_info = document.getElementById('registerMessage');
+
+    register_info.textContent = '';
+
+    if (!firstName || !lastName) {
+        register_info.textContent = 'Podaj imię i nazwisko.';
+        return;
+    }
+
+    if (password.length < 7) {
+        register_info.textContent = 'Hasło musi mieć co najmniej 7 znaków.';
+        return;
+    }
+
+    if (password !== password2) {
+        register_info.textContent = "Podane hasła się od siebie różnią.";
+        return;
+    }
+
+    const res = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ first_name: firstName, last_name: lastName, email, password })
+    });
+
+    const data = await res.json();
+    register_info.textContent = data.message || (data.success ? 'OK' : 'Błąd');
+
+    if (data.success) form.reset();
+});
+</script>
+
 </body>
 </html>

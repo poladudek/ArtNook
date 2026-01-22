@@ -1,13 +1,13 @@
 const userModel = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const SECRET = "sekret"
+const SECRET = process.env.JWT_SECRET;
 
 const userService = {
-  createUser: async (email, password) => {
+  createUser: async (first_name, last_name, email, password) => {
     try {
       const hash = await bcrypt.hash(password, 10);
-      await userModel.createUser(email, hash);
+      await userModel.createUser(first_name, last_name, email, hash);
 
       return {success: true, message: 'Rejestracja przebiegła pomyślnie.'};
     } catch (err) {

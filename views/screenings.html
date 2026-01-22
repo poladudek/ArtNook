@@ -1,48 +1,307 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>ArtNook - Repertuar</title>
-        <link rel="stylesheet" href="styles/style.css">
-    </head>
-    <body>
-        <nav>
-            <p class="name">ART NOOK</p>
-            <div class="tabs">
-                <a href = "screenings.html">Repertuar</a>
-                <a href = "about.html">O nas</a>
-                <a href = "login.html">Zaloguj się</a>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repertuar - ArtNook</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+
+    <nav>
+        <a class="name" href="index.html">ART NOOK</a>
+        <div class="tabs">
+            <a href="screenings.html">Repertuar</a>
+            <a id="authLink" href="login.html">Zaloguj się</a>
+        </div>
+    </nav>
+
+    <h1 class="section-title">REPERTUAR</h1>
+
+    <!-- USUNIĘTO movies-scroll (slider) -->
+    <div class="movies-container" id="moviesContainer">
+        <div class="loading">Ładowanie filmów...</div>
+    </div>
+
+    <div id="drawerOverlay" class="drawer-overlay" onclick="closeDrawer()" style="display:none"></div>
+
+    <aside id="reservationDrawer" class="drawer">
+        <div class="drawer-inner">
+            <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+
+            <div class="drawer-header">
+                <h2 class="modal-title" id="modalMovieTitle"></h2>
+                <p class="modal-desc" id="modalMovieDesc"></p>
+                <p class="modal-duration" id="modalMovieDuration"></p>
+                <p class="modal-screening-info" id="modalScreeningInfo" style="font-weight:600;color:#ccc;margin-top:6px"></p>
             </div>
-        </nav>
-        <div class="movies"></div>
-       <script>
-            console.log("Script is working");
-            const container = document.querySelector(".movies");
-            async function loadMovies() {
-                try {
-                const response = await fetch('http://localhost:3000/api/movies/');
-                const data = await response.json();
-                console.log("Data from API:", data);
-                data.forEach(item => {
-                    const div = document.createElement('div');
-                    const title = document.createElement('h3');
-                    title.textContent = item.title;
-                    const desc = document.createElement('p');
-                    desc.textContent = item.description;
 
-                    const img = document.createElement('img');
-                    img.src = `http://localhost:3000/${item.img_path}`;
-                    img.alt = item.title;
+            <div class="screening-select">
+                <label for="screeningSelect">Wybierz seans:</label>
+                <select id="screeningSelect" onchange="loadSeats()">
+                    <option value="">-- Wybierz termin seansu --</option>
+                </select>
+            </div>
 
-                    div.appendChild(img);
-                    div.appendChild(title);
-                    div.appendChild(desc);
-                    container.appendChild(div);
-                });
-                } catch (err) {
-                console.error('Failed to load movies:', err);
+            <div id="seatsSection" class="seats-section" style="display: none;">
+                <div class="screen">Ekran</div>
+                <div class="seats-grid" id="seatsGrid"></div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-box available"></div>
+                        <span>Dostępne</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box selected"></div>
+                        <span>Wybrane</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box booked"></div>
+                        <span>Zajęte</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="reserve-btn" id="reserveBtn" onclick="reserveSeat()" disabled>
+                ZAREZERWUJ MIEJSCE
+            </button>
+
+            <div id="message" style="display: none;"></div>
+        </div>
+    </aside>
+
+    <script>
+        let currentMovieId = null;
+        let currentScreeningId = null;
+        let selectedSeat = null;
+        let allSeats = [];
+
+        async function loadMovies() {
+            try {
+                const movies = (await (await fetch("http://localhost:3000/api/movies")).json()).data;
+
+                const container = document.getElementById('moviesContainer');
+                container.innerHTML = '';
+
+                if (!movies.length) {
+                    container.innerHTML = '<div class="loading">Brak dostępnych filmów.</div>';
+                    return;
                 }
+
+                movies.forEach(movie => {
+                    const card = document.createElement("div");
+                    card.classList.add("movie-card");
+                    card.onclick = () => openReservationModal(movie);
+
+                    const img = document.createElement("img");
+                    img.classList.add("movie-poster");
+                    img.src = `http://localhost:3000/${movie.img_path}`;
+                    img.alt = movie.title;
+
+                    const info = document.createElement("div");
+                    info.classList.add("movie-info");
+
+                    const title = document.createElement("h3");
+                    title.classList.add("movie-title");
+                    title.textContent = movie.title;
+
+                    info.append(title);
+                    card.append(img, info);
+                    container.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error('Błąd ładowania filmów:', err);
+                document.getElementById('moviesContainer').innerHTML =
+                    '<div class="loading">Błąd ładowania filmów. Sprawdź połączenie z serwerem.</div>';
             }
-            loadMovies();
-        </script>
-    </body>
+        }
+
+        async function openReservationModal(movie) {
+            currentMovieId = movie.id;
+            document.getElementById('modalMovieTitle').textContent = movie.title;
+            document.getElementById('modalMovieDesc').textContent = movie.description;
+            document.getElementById('modalMovieDuration').textContent = `Czas trwania: ${movie.duration} min`;
+            document.getElementById('drawerOverlay').style.display = 'block';
+            document.getElementById('reservationDrawer').classList.add('open');
+            document.getElementById('seatsSection').style.display = 'none';
+            document.getElementById('message').style.display = 'none';
+            document.getElementById('reserveBtn').disabled = true;
+
+            await loadScreenings(movie.id);
+        }
+
+        async function loadScreenings(movieId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/screenings/full/${movieId}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const screenings = await response.json();
+
+                const select = document.getElementById('screeningSelect');
+                select.innerHTML = '<option value="">Wybierz termin seansu</option>';
+
+                screenings.forEach(screening => {
+                    const option = document.createElement('option');
+                    option.value = screening.id;
+                    const date = new Date(screening.start_time);
+                    option.textContent =
+                        `${date.toLocaleDateString('pl-PL')} ${date.toLocaleTimeString('pl-PL', {hour:'2-digit',minute:'2-digit'})} – Sala ${screening.room_name}`;
+                    select.appendChild(option);
+                });
+
+            } catch (err) {
+                console.error('Błąd ładowania seansów:', err);
+                showMessage('Błąd ładowania seansów. Spróbuj ponownie.', 'error');
+            }
+        }
+
+        async function loadSeats() {
+            const screeningId = document.getElementById('screeningSelect').value;
+            if (!screeningId) {
+                document.getElementById('seatsSection').style.display = 'none';
+                document.getElementById('reserveBtn').disabled = true;
+                document.getElementById('modalScreeningInfo').textContent = '';
+                return;
+            }
+
+            currentScreeningId = screeningId;
+            selectedSeat = null;
+            document.getElementById('reserveBtn').disabled = true;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/screenings/${screeningId}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+
+                const start = new Date(data.start_time);
+                document.getElementById('modalScreeningInfo').textContent = `${start.toLocaleDateString('pl-PL')} ${start.toLocaleTimeString('pl-PL', {hour:'2-digit',minute:'2-digit'})} — Sala ${data.room_name || ''}`;
+
+                allSeats = data.seats || [];
+                const totalSeats = Number(data.seats_total);
+
+                const seatsGrid = document.getElementById('seatsGrid');
+                seatsGrid.innerHTML = '';
+                document.getElementById('seatsSection').style.display = 'block';
+
+                for (let i = 1; i <= totalSeats; i++) {
+                    const seat = document.createElement('div');
+                    seat.className = 'seat';
+                    seat.textContent = i;
+                    seat.dataset.seatNumber = i;
+
+                    const seatInfo = allSeats.find(s => parseInt(s.seat_number) === i);
+                    if (seatInfo && seatInfo.is_booked) {
+                        seat.classList.add('booked');
+                    } else {
+                        seat.onclick = () => selectSeat(i);
+                    }
+
+                    seatsGrid.appendChild(seat);
+                }
+
+            } catch (err) {
+                console.error('Błąd ładowania miejsc:', err);
+                showMessage('Błąd ładowania miejsc. Spróbuj ponownie.', 'error');
+            }
+        }
+
+        function selectSeat(seatNumber) {
+            document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
+            const seatEl = document.querySelector(`[data-seat-number="${seatNumber}"]`);
+            if (seatEl && !seatEl.classList.contains('booked')) {
+                seatEl.classList.add('selected');
+                selectedSeat = seatNumber;
+                document.getElementById('reserveBtn').disabled = false;
+            }
+        }
+
+        async function reserveSeat() {
+            if (!selectedSeat || !currentScreeningId) return;
+
+            document.getElementById('reserveBtn').disabled = true;
+
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showMessage('Musisz być zalogowany, aby zarezerwować miejsce.', 'error');
+                    document.getElementById('reserveBtn').disabled = false;
+                    return;
+                }
+
+                const response = await fetch(
+                    `http://localhost:3000/api/screenings/reserve/${currentScreeningId}/${selectedSeat}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
+
+                const payload = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    if (response.status === 409) {
+                        showMessage('To miejsce jest już zajęte — wybierz inne.', 'error');
+                        await loadSeats();
+                        return;
+                    }
+                    if (response.status === 401) {
+                        showMessage('Musisz się zalogować ponownie.', 'error');
+                        return;
+                    }
+                    console.error('Reservation error:', payload);
+                    showMessage('Błąd rezerwacji. Spróbuj ponownie.', 'error');
+                    return;
+                }
+
+                showMessage(`Miejsce ${selectedSeat} zostało zarezerwowane!`, 'success');
+                await loadSeats();
+
+            } catch (err) {
+                console.error('Błąd rezerwacji:', err);
+                showMessage('Błąd rezerwacji. Spróbuj ponownie.', 'error');
+            } finally {
+                document.getElementById('reserveBtn').disabled = false;
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.style.display = 'block';
+            messageEl.className = 'message';
+        }
+
+        function closeDrawer() {
+            document.getElementById('reservationDrawer').classList.remove('open');
+            document.getElementById('drawerOverlay').style.display = 'none';
+            document.getElementById('seatsSection').style.display = 'none';
+            document.getElementById('screeningSelect').value = '';
+            document.getElementById('message').style.display = 'none';
+            selectedSeat = null;
+            currentScreeningId = null;
+            currentMovieId = null;
+            document.getElementById('reserveBtn').disabled = true;
+        }
+
+        loadMovies();
+        function updateAuthLink() {
+            const authLink = document.getElementById('authLink');
+            const token = localStorage.getItem('token');
+            if (!authLink) return;
+            if (token) {
+                authLink.href = 'user.html';
+                authLink.innerHTML = '<span class="user-icon">👤</span>';
+                authLink.title = 'Panel użytkownika';
+            } else {
+                authLink.href = 'login.html';
+                authLink.textContent = 'Zaloguj się';
+            }
+        }
+        updateAuthLink();
+    </script>
+
+</body>
 </html>
